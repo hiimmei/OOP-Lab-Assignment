@@ -11,6 +11,9 @@ import javafx.scene.Scene;
 import javafx.scene.chart.*;
 import javafx.stage.Stage;
 
+import model.Product;
+import file_manager.FileManager;
+import result.ProductListResult;
 
 public class ProductOperation {
     private final String productFilePath = "data/products.txt";
@@ -31,10 +34,14 @@ public class ProductOperation {
     }
 
     public void extractProductsFromFiles () {
-        products = FileManager.readObjects(productFilePath, Product::parseFromLine);
+        products = FileManager.readObjects(productFilePath, Product::parseProductFromString);
     }
 
     public ProductListResult getProductList (int pageNumber) {
+        if (products == null || products.isEmpty()) {
+            return new ProductListResult(new ArrayList<>(), 1, 1);
+        }
+
         int pageSize = 10;
         int totalProducts = products.size();
         int totalPages = (int) Math.ceil((double) totalProducts / pageSize);
@@ -45,12 +52,10 @@ public class ProductOperation {
         int startIndex = (pageNumber - 1) * pageSize;
         int endIndex = Math.min(startIndex + pageSize, totalProducts);
 
-        List<Product> pageItems = new ArrayList<>();
-        if (startIndex < endIndex) {
-            pageItems = products.subList(startIndex, endIndex);
-        }
+        List<Product> pageItems = products.subList(startIndex, endIndex);
 
-        return new ProductListResult(pageNumber, pageItems, totalPages);
+
+        return new ProductListResult(pageItems, pageNumber, totalPages);
     }
 
     public boolean deleteProduct (String productId) {

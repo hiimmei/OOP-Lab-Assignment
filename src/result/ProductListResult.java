@@ -11,9 +11,6 @@ public class ProductListResult {
     private int currentPage;
     private int totalPages;
 
-    public ProductListResult() {
-    }
-
     public ProductListResult(List<Product> products, int currentPage, int totalPages) {
         this.products = products;
         this.currentPage = currentPage;
@@ -43,4 +40,5 @@ public class ProductListResult {
     public void setTotalPages(int totalPages) {
         this.totalPages = totalPages;
     }
+
 }

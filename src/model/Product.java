@@ -105,4 +105,39 @@ public class Product {
                 ", proLikesCount=" + proLikesCount +
                 '}';
     }
+
+    public static Product parseProductFromString(String line) {
+        line = line.trim();
+        line = line.substring(1, line.length() - 1);
+        String[] parts = line.split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");
+
+        String proId = "";
+        String proModel = "";
+        String proCategory = "";
+        String proName = "";
+        double proCurrentPrice = 0;
+        double proRawPrice = 0;
+        double proDiscount = 0;
+        int proLikesCount = 0;
+
+        for (String part : parts) {
+            String[] keyValue = part.split(":", 2);
+            String key = keyValue[0].trim().replace("\"", "");
+            String value = keyValue[1].trim().replace("\"", "");
+
+            switch (key) {
+                case "pro_id" -> proId = value;
+                case "pro_model" -> proModel = value;
+                case "pro_category" -> proCategory = value;
+                case "pro_name" -> proName = value;
+                case "pro_current_price" -> proCurrentPrice = Double.parseDouble(value);
+                case "pro_raw_price" -> proRawPrice = Double.parseDouble(value);
+                case "pro_discount" -> proDiscount = Double.parseDouble(value);
+                case "pro_likes_count" -> proLikesCount = Integer.parseInt(value);
+            }
+        }
+
+        return new Product(proId, proModel, proCategory, proName,
+                proCurrentPrice, proRawPrice, proDiscount, proLikesCount);
+    }
 }

@@ -11,9 +11,6 @@ public class OrderListResult {
     private int currentPage;
     private int totalPages;
 
-    public OrderListResult() {
-    }
-
     public OrderListResult(List<Order> orders, int currentPage, int totalPages) {
         this.orders = orders;
         this.currentPage = currentPage;
