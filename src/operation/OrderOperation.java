@@ -1,48 +1,44 @@
 package operation;
 
+import iointerface.IOInterface;
 import model.Order;
 import result.OrderListResult;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.io.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
-import java.util.stream.Collectors;
-
 
 public class OrderOperation {
     private static OrderOperation instance;
+
     private static final String DATA_DIR = "data";
-    private static final String ORDER_FILE = "orders.txt";
+    private static final String ORDER_FILE = "data/orders.txt";
     private static final int PAGE_SIZE = 10;
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("dd-MM-yyyy_HH:mm:ss");
     private static final Random RANDOM = new Random();
 
-    // Private constructor để đảm bảo Singleton
     private OrderOperation() {
-        // Tạo thư mục và file nếu chưa tồn tại
-        try {
-            Path dataDir = Paths.get(DATA_DIR);
-            if (Files.notExists(dataDir)) {
-                Files.createDirectory(dataDir);
+        File dir = new File(DATA_DIR);
+        if (!dir.exists()) {
+            boolean created = dir.mkdirs();
+            if (!created) {
+                IOInterface.getInstance().printErrorMessage("Init", "Không thể tạo thư mục data.");
             }
-            Path orderFile = dataDir.resolve(ORDER_FILE);
-            if (Files.notExists(orderFile)) {
-                Files.createFile(orderFile);
+        }
+
+        File file = new File(ORDER_FILE);
+        if (!file.exists()) {
+            try {
+                boolean created = file.createNewFile();
+                if (!created) {
+                    IOInterface.getInstance().printErrorMessage("Init", "Không thể tạo file orders.txt.");
+                }
+            } catch (IOException e) {
+                IOInterface.getInstance().printErrorMessage("Init", "Lỗi khi tạo file orders.txt: " + e.getMessage());
             }
-        } catch (IOException e) {
-            // Nếu có lỗi, in ra console (hoặc ghi log tùy cách bạn muốn xử lý)
-            System.err.println("Unable to initialize data directory or order file: " + e.getMessage());
         }
     }
 
@@ -64,82 +60,74 @@ public class OrderOperation {
     public String generateUniqueOrderId() {
         List<Order> existing = readAllOrders();
         String newId;
-        do {
-            int num = 10000 + RANDOM.nextInt(90000); // 5 chữ số, từ 10000 đến 99999
+
+        while (true) {
+            int num = 10000 + RANDOM.nextInt(90000);
             newId = "o_" + num;
-        } while (existing.stream().anyMatch(o -> o.getOrderId().equals(newId)));
+            final String checkId = newId;
+            boolean exists = existing.stream().anyMatch(o -> o.getOrderId().equals(checkId));
+            if (!exists) break;
+        }
+
         return newId;
     }
 
 
     public boolean createAnOrder(String customerId, String productId, String createTime) {
         String orderId = generateUniqueOrderId();
-        String time;
-        if (createTime == null || createTime.trim().isEmpty()) {
-            time = LocalDateTime.now().format(TIME_FORMATTER);
-        } else {
-            time = createTime;
-        }
+        String time = (createTime == null || createTime.trim().isEmpty())
+                ? LocalDateTime.now().format(TIME_FORMATTER)
+                : createTime;
+
         Order newOrder = new Order(orderId, customerId, productId, time);
 
-        Path orderFile = Paths.get(DATA_DIR, ORDER_FILE);
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(orderFile.toFile(), true))) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(ORDER_FILE, true))) {
             writer.write(newOrder.toString());
             writer.newLine();
             return true;
         } catch (IOException e) {
-            System.err.println("Error writing new order to file: " + e.getMessage());
+            IOInterface.getInstance().printErrorMessage("CreateOrder", "Không thể ghi order mới: " + e.getMessage());
             return false;
         }
     }
 
 
+
     public boolean deleteOrder(String orderId) {
-        Path orderFile = Paths.get(DATA_DIR, ORDER_FILE);
         List<Order> all = readAllOrders();
         boolean removed = all.removeIf(o -> o.getOrderId().equals(orderId));
-        if (!removed) {
-            return false; // Không tìm thấy orderId
-        }
+        if (!removed) return false;
 
-        // Ghi ngược lại toàn bộ danh sách vào file
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(orderFile.toFile(), false))) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(ORDER_FILE, false))) {
             for (Order o : all) {
                 writer.write(o.toString());
                 writer.newLine();
             }
             return true;
         } catch (IOException e) {
-            System.err.println("Error rewriting order file after delete: " + e.getMessage());
+            IOInterface.getInstance().printErrorMessage("DeleteOrder", "Lỗi khi ghi lại file: " + e.getMessage());
             return false;
         }
     }
 
 
     public OrderListResult getOrderList(String customerId, int pageNumber) {
-        List<Order> all = readAllOrders()
-                .stream()
-                .filter(o -> o.getUserId().equals(customerId))
-                .collect(Collectors.toList());
+        List<Order> filtered = new ArrayList<>();
+        for (Order o : readAllOrders()) {
+            if (o.getUserId().equals(customerId)) {
+                filtered.add(o);
+            }
+        }
 
-        int total = all.size();
-        int totalPages = (total + PAGE_SIZE - 1) / PAGE_SIZE;
-        if (pageNumber < 1) pageNumber = 1;
-        if (pageNumber > totalPages) pageNumber = totalPages;
+        int total = filtered.size();
+        int totalPages = Math.max(1, (total + PAGE_SIZE - 1) / PAGE_SIZE);
+        pageNumber = Math.max(1, Math.min(pageNumber, totalPages));
 
         int fromIndex = (pageNumber - 1) * PAGE_SIZE;
         int toIndex = Math.min(fromIndex + PAGE_SIZE, total);
+        List<Order> page = filtered.subList(fromIndex, toIndex);
 
-        List<Order> pageList = new ArrayList<>();
-        if (fromIndex < toIndex) {
-            pageList = all.subList(fromIndex, toIndex);
-        }
-
-        OrderListResult result = new OrderListResult();
-        result.setOrders(pageList);
-        result.setCurrentPage(pageNumber);
-        result.setTotalPages(totalPages);
-
+        OrderListResult result = new OrderListResult(page, pageNumber, totalPages);
         return result;
     }
 
@@ -164,44 +152,43 @@ public class OrderOperation {
                 createAnOrder(custId, pid, strTime);
             }
         }
+        IOInterface.getInstance().printMessage("Tạo dữ liệu đơn hàng test thành công.");
     }
 
     public void generateSingleCustomerConsumptionFigure(String customerId) {
-        System.out.println("Generating consumption figure for customer: " + customerId);
+        IOInterface.getInstance().printMessage("Tạo biểu đồ tiêu dùng cho customer: " + customerId);
+        // TODO: Dùng javafx để vẽ biểu đồ
     }
 
     public void generateAllCustomersConsumptionFigure() {
-        System.out.println("Generating consumption figure for ALL customers");
+        IOInterface.getInstance().printMessage("Tạo biểu đồ tiêu dùng cho toàn bộ customer.");
+        // TODO: Dùng javafx để vẽ biểu đồ
     }
 
     public void generateAllTop10BestSellersFigure() {
-        System.out.println("Generating TOP 10 Best Sellers figure");
+        IOInterface.getInstance().printMessage("Tạo biểu đồ 10 sản phẩm bán chạy nhất.");
+        // TODO: Dùng javafx để vẽ biểu đồ
     }
 
     public void deleteAllOrders() {
-        Path orderFile = Paths.get(DATA_DIR, ORDER_FILE);
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(orderFile.toFile(), false))) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(ORDER_FILE, false))) {
+            // Clear file
         } catch (IOException e) {
-            System.err.println("Error clearing all orders: " + e.getMessage());
+            IOInterface.getInstance().printErrorMessage("DeleteAllOrders", "Không thể xóa đơn hàng: " + e.getMessage());
         }
     }
 
     private List<Order> readAllOrders() {
         List<Order> list = new ArrayList<>();
-        Path orderFile = Paths.get(DATA_DIR, ORDER_FILE);
-
-        try (BufferedReader reader = new BufferedReader(new FileReader(orderFile.toFile()))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(ORDER_FILE))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 Order o = parseOrderFromString(line.trim());
-                if (o != null) {
-                    list.add(o);
-                }
+                if (o != null) list.add(o);
             }
         } catch (IOException e) {
-            System.err.println("Error reading orders from file: " + e.getMessage());
+            IOInterface.getInstance().printErrorMessage("ReadOrders", "Không thể đọc file: " + e.getMessage());
         }
-
         return list;
     }
 

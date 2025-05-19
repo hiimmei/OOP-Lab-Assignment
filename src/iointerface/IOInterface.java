@@ -19,14 +19,18 @@ public class IOInterface {
     }
 
     public String[] getUserInput (String message, int numOfArgs) {
-        System.out.println(message);
+        System.out.print(message);
         String[] userInput = scanner.nextLine().trim().split("\\s+");
-        if (userInput.length != numOfArgs) {
-            System.out.println("Invalid input. Please enter " + numOfArgs + " values(s) in the form like: userName userPassword.");
-            System.out.println(message);
-            return getUserInput(message, numOfArgs);
+        String[] result = new String[numOfArgs];
+
+        for (int i = 0; i < numOfArgs; i++) {
+            if (i < userInput.length) {
+                result[i] = userInput[i];
+            } else {
+                result [i] = "";
+            }
         }
-        else return userInput;
+        return result;
     }
 
     public void mainMenu () {
@@ -56,19 +60,19 @@ public class IOInterface {
     }
 
     public void showList (String userRole, String listType, List<?> objectList, int pageNumber, int totalPages) {
-        System.out.println("=== " + listType + " List (Page " + pageNumber + ") ===");
-        int no = 1;
-        for (Object obj : objectList) {
-            System.out.println(no++ + ". " + obj.toString());
+        System.out.println(("====== " + listType + " List (Page " + pageNumber + "/" + totalPages + ") ======"));
+        for (int i = 0; i < objectList.size(); i++) {
+            System.out.println((i + 1) + ". " + objectList.get(i).toString());
         }
+        printMessage("");
     }
 
     public void printErrorMessage (String errorSource, String errorMessage) {
-        System.out.println(errorMessage + "from" + errorSource);
+        System.out.println("Error from " + errorSource + ": " + errorMessage);
     }
 
     public void printMessage (String message) {
-        System.out.println(message);
+        System.out.print(message);
     }
 
     public void printObject (Objects targetObject) {

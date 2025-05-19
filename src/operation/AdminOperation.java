@@ -1,5 +1,12 @@
 package operation;
 
+import file_manager.FileManager;
+import iointerface.IOInterface;
+import model.Admin;
+import model.User;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 public class AdminOperation {
@@ -15,7 +22,7 @@ public class AdminOperation {
     }
 
     public void registerAdmin() {
-        List<User> users = FileManager.readObjects("data/users.txt", UserOperation::parseFromLine);
+        List<User> users = FileManager.readObjects("data/users.txt", User::parseUserFromString);
 
         boolean adminExists = users.stream()
                 .anyMatch(u -> u.getUserRole().equalsIgnoreCase("admin"));
@@ -31,14 +38,16 @@ public class AdminOperation {
         String name = input[0];
         String password = input[1];
 
-        String userId = UserOperation.generateUniqueUserId();
-        String encryptedPassword = UserOperation.encryptPassword(password);
-        String registerTime = UserOperation.getCurrentTime();
+        String userId = UserOperation.getInstance().generateUniqueUserId();
+        String encryptedPassword = UserOperation.getInstance().encryptPassword(password);
+
+        DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy_HH:mm:ss");
+        String registerTime = LocalDateTime.now().format(dateTimeFormatter);
 
         Admin admin = new Admin(userId, name, encryptedPassword, registerTime, "admin");
 
         FileManager.writeObject("data/users.txt", admin, true);
-        io.printMessage("Admin registered successfully.");
+        io.printMessage("Admin registered successfully. Welcome, " + input[0]);
     }
 
 }
