@@ -82,7 +82,9 @@ public class OrderOperation {
         Order newOrder = new Order(orderId, customerId, productId, time);
 
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(ORDER_FILE, true))) {
+            writer.write("{");
             writer.write(newOrder.toString());
+            writer.write("}");
             writer.newLine();
             return true;
         } catch (IOException e) {

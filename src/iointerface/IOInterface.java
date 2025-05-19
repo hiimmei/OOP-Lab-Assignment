@@ -59,6 +59,11 @@ public class IOInterface {
         System.out.println("6. Logout");
     }
 
+    public void registerMenu () {
+        System.out.println("1. As an admin");
+        System.out.println("2. As a customer");
+    }
+
     public void showList (String userRole, String listType, List<?> objectList, int pageNumber, int totalPages) {
         System.out.println(("====== " + listType + " List (Page " + pageNumber + "/" + totalPages + ") ======"));
         for (int i = 0; i < objectList.size(); i++) {

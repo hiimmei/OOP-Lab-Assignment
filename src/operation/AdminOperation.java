@@ -22,17 +22,17 @@ public class AdminOperation {
     }
 
     public void registerAdmin() {
-        List<User> users = FileManager.readObjects("data/users.txt", User::parseUserFromString);
+        //List<User> users = FileManager.readObjects("data/users.txt", User::parseUserFromString);
 
-        boolean adminExists = users.stream()
-                .anyMatch(u -> u.getUserRole().equalsIgnoreCase("admin"));
+        //boolean adminExists = users.stream()
+          //      .anyMatch(u -> u.getUserRole().equalsIgnoreCase("admin"));
 
-        if (adminExists) {
-            return;
-        }
+        //if (adminExists) {
+        //    return;
+        //}
 
         IOInterface io = IOInterface.getInstance();
-        io.printMessage("No admin found. Please register the first admin:");
+        //io.printMessage("No admin found. Please register the first admin:");
 
         String[] input = io.getUserInput("Enter admin name and password (separated by space):", 2);
         String name = input[0];
@@ -47,7 +47,8 @@ public class AdminOperation {
         Admin admin = new Admin(userId, name, encryptedPassword, registerTime, "admin");
 
         FileManager.writeObject("data/users.txt", admin, true);
-        io.printMessage("Admin registered successfully. Welcome, " + input[0]);
+        io.printMessage("Admin registered successfully. Hello, " + input[0]);
+        io.printMessage("\n");
     }
 
 }

@@ -107,9 +107,12 @@ public class Product {
     }
 
     public static Product parseProductFromString(String line) {
-        line = line.trim();
-        line = line.substring(1, line.length() - 1);
-        String[] parts = line.split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");
+        if (!line.startsWith("{") || !line.endsWith("}")) {
+            return null;
+        }
+
+        String body = line.substring(1, line.length() - 1).trim();
+        String[] parts = body.split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");
 
         String proId = "";
         String proModel = "";

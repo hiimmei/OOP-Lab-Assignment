@@ -11,6 +11,7 @@ import java.util.regex.Pattern;
 
 public class UserOperation {
     private static UserOperation instance = new UserOperation();
+    private List<User> users;
 
     private static final String DATA_DIR  = "data";
     private static final String USER_FILE = "data/users.txt";
@@ -111,7 +112,7 @@ public class UserOperation {
     public boolean checkUsernameExist(String userName) {
         if (userName == null || userName.trim().isEmpty()) return false;
 
-        return readAllUsers().stream()
+        return users.stream()
                 .anyMatch(u -> u.getUserName().equalsIgnoreCase(userName));
     }
 
@@ -128,7 +129,7 @@ public class UserOperation {
     public User login(String userName, String rawPassword) {
         if (userName == null || rawPassword == null) return null;
 
-        return readAllUsers().stream()
+        return users.stream()
                 .filter(u -> u.getUserName().equalsIgnoreCase(userName))
                 .filter(u -> decryptPassword(u.getUserPassword()).equals(rawPassword))
                 .findFirst()
@@ -137,7 +138,7 @@ public class UserOperation {
 
 
     public List<User> readAllUsers() {
-        List<User> users = new ArrayList<>();
+        users = new ArrayList<>();
         try (BufferedReader reader = new BufferedReader(new FileReader(USER_FILE))) {
             String line;
             while ((line = reader.readLine()) != null) {

@@ -13,7 +13,7 @@ public class CustomerOperation {
     private static CustomerOperation instance;
 
     private static final String DATA_DIR       = "data";
-    private static final String CUSTOMER_FILE  = "data/customers.txt";
+    private static final String CUSTOMER_FILE  = "data/users.txt";
     private static final int    PAGE_SIZE      = 10;
     private static final DateTimeFormatter TIME_FORMATTER =
             DateTimeFormatter.ofPattern("dd-MM-yyyy_HH:mm:ss");
@@ -80,8 +80,12 @@ public class CustomerOperation {
                 userId, userName, encryptedPw, registerTime, "customer", email, mobile
         );
 
+        io.printMessage("Customer registered successfully. Welcome, " + userName);
+
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(CUSTOMER_FILE, true))) {
+            writer.write("{");
             writer.write(newCustomer.toString());
+            writer.write("}");
             writer.newLine();
             return newCustomer;
         } catch (IOException e) {

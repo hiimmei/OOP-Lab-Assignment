@@ -59,11 +59,17 @@ public abstract class User {
 
     @Override
     public String toString () {
-        return "user_id: " + userId
-                + ", user_name: " + userName
-                + ", user_password: " + userPassword
-                + ", user_register_time: " + userRegisterTime
-                + ", user_role: " + userRole;
+        return String.format(
+                "{\"user_id\":\"%s\",\"user_name\":\"%s\",\"user_password\":\"%s\",\"user_register_time\":\"%s\",\"user_role\":\"%s\"%s}",
+                userId,
+                userName,
+                userPassword,
+                userRegisterTime,
+                userRole,
+                (this instanceof model.Customer customer)
+                        ? String.format(",\"user_email\":\"%s\",\"user_mobile\":\"%s\"", customer.getUserEmail(), customer.getUserMobile())
+                        : ""
+        );
     }
 
     public static User parseUserFromString(String s) {
@@ -112,10 +118,6 @@ public abstract class User {
             else if (userRole.equalsIgnoreCase("customer")) return new Customer(userId, userName, userPassword, userRegisterTime, userRole, userEmail, userMobile);
         }
         return null;
-    }
-
-    public static User parseFromLine (String s) {
-        return parseUserFromString(s);
     }
 }
 

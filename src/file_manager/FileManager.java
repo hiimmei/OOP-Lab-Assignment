@@ -25,7 +25,9 @@ public class FileManager {
     public static void writeLinesToFile (String path, List<String> lines, boolean append) {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(path, append))) {
             for (String line : lines) {
+                writer.write("{");
                 writer.write(line);
+                writer.write("}");
                 writer.newLine();
             }
         } catch (IOException e) {
