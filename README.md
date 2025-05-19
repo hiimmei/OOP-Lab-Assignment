@@ -2,11 +2,11 @@
 
 ## Overview
 
-This project is a Java-based command-line e-commerce system developed as part of an Object-Oriented Programming (OOP) lab assignment. It follows standard OOP principles, utilizing model classes, operation classes, a control class, and a separate I/O interface to simulate a basic e-commerce management system.
+This project is a Java-based command-line e-commerce system developed as part of an Object-Oriented Programming (OOP) lab assignment @HCMIU-VNU. It follows standard OOP principles, utilizing model classes, operation classes, a control class, and a separate I/O interface to simulate a basic e-commerce management system.
 
 > **Contributors**:  
-> - Nguyễn Lê Mai Hương  
-> - Nguyễn Ngọc Phương Như  
+> - Nguyễn Lê Mai Hương  - ITITWE23040
+> - Nguyễn Ngọc Phương Như  - ITCSIU24065
 
 ---
 
