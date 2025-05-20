@@ -60,7 +60,7 @@ public abstract class User {
     @Override
     public String toString () {
         return String.format(
-                "{\"user_id\":\"%s\",\"user_name\":\"%s\",\"user_password\":\"%s\",\"user_register_time\":\"%s\",\"user_role\":\"%s\"%s}",
+                "\"user_id\":\"%s\",\"user_name\":\"%s\",\"user_password\":\"%s\",\"user_register_time\":\"%s\",\"user_role\":\"%s\"%s",
                 userId,
                 userName,
                 userPassword,

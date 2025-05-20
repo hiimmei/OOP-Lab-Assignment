@@ -129,7 +129,7 @@ public class UserOperation {
     public User login(String userName, String rawPassword) {
         if (userName == null || rawPassword == null) return null;
 
-        return users.stream()
+        return readAllUsers().stream()
                 .filter(u -> u.getUserName().equalsIgnoreCase(userName))
                 .filter(u -> decryptPassword(u.getUserPassword()).equals(rawPassword))
                 .findFirst()
@@ -138,16 +138,18 @@ public class UserOperation {
 
 
     public List<User> readAllUsers() {
-        users = new ArrayList<>();
+        List<User> loadedUsers = new ArrayList<>();
         try (BufferedReader reader = new BufferedReader(new FileReader(USER_FILE))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 User u = User.parseUserFromString(line.trim());
-                if (u != null) users.add(u);
+                if (u != null) loadedUsers.add(u);
             }
         } catch (IOException e) {
             IOInterface.getInstance().printErrorMessage("ReadUsers", "Không thể đọc file users.txt: " + e.getMessage());
         }
+
+        this.users = loadedUsers;
         return users;
     }
 

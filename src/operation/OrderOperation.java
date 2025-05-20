@@ -1,21 +1,27 @@
 package operation;
 
 import iointerface.IOInterface;
+import javafx.application.Platform;
+import javafx.scene.Scene;
+import javafx.scene.SnapshotParameters;
+import javafx.scene.chart.*;
+import javafx.scene.image.WritableImage;
 import model.Order;
 import result.OrderListResult;
 
+import javax.imageio.ImageIO;
 import java.io.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class OrderOperation {
     private static OrderOperation instance;
 
     private static final String DATA_DIR = "data";
     private static final String ORDER_FILE = "data/orders.txt";
+    private static final String FIGURE_DIR = "data/figure";
     private static final int PAGE_SIZE = 10;
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("dd-MM-yyyy_HH:mm:ss");
     private static final Random RANDOM = new Random();
@@ -158,18 +164,49 @@ public class OrderOperation {
     }
 
     public void generateSingleCustomerConsumptionFigure(String customerId) {
-        IOInterface.getInstance().printMessage("Tạo biểu đồ tiêu dùng cho customer: " + customerId);
-        // TODO: Dùng javafx để vẽ biểu đồ
+        List<Order> orders = readAllOrders().stream()
+                .filter(o -> o.getUserId().equals(customerId))
+                .collect(Collectors.toList());
+        Map<Integer, Double> monthSum = new TreeMap<>();
+        for (int m = 1; m <= 12; m++) monthSum.put(m, 0.0);
+        for (Order o : orders) {
+            int m = Integer.parseInt(o.getOrderTime().substring(3, 5));
+            monthSum.put(m, monthSum.get(m) + 1.0);
+        }
+        LineChart<String, Number> chart = createLineChart("Month", "Consumption", "Customer " + customerId + " Consumption");
+        XYChart.Series<String, Number> series = new XYChart.Series<>();
+        monthSum.forEach((m, sum) -> series.getData().add(new XYChart.Data<>(String.valueOf(m), sum)));
+        chart.getData().add(series);
+        saveChart(chart, "single_customer_" + customerId + ".png");
     }
 
     public void generateAllCustomersConsumptionFigure() {
-        IOInterface.getInstance().printMessage("Tạo biểu đồ tiêu dùng cho toàn bộ customer.");
-        // TODO: Dùng javafx để vẽ biểu đồ
+        List<Order> orders = readAllOrders();
+        Map<Integer, Double> monthSum = new TreeMap<>();
+        for (int m = 1; m <= 12; m++) monthSum.put(m, 0.0);
+        for (Order o : orders) {
+            int m = Integer.parseInt(o.getOrderTime().substring(3, 5));
+            monthSum.put(m, monthSum.get(m) + 1.0);
+        }
+        LineChart<String, Number> chart = createLineChart("Month", "Total Consumption", "All Customers Consumption");
+        XYChart.Series<String, Number> series = new XYChart.Series<>();
+        monthSum.forEach((m, sum) -> series.getData().add(new XYChart.Data<>(String.valueOf(m), sum)));
+        chart.getData().add(series);
+        saveChart(chart, "all_customers_consumption.png");
     }
 
     public void generateAllTop10BestSellersFigure() {
-        IOInterface.getInstance().printMessage("Tạo biểu đồ 10 sản phẩm bán chạy nhất.");
-        // TODO: Dùng javafx để vẽ biểu đồ
+        List<Order> orders = readAllOrders();
+        Map<String, Long> countMap = orders.stream()
+                .collect(Collectors.groupingBy(Order::getProId, Collectors.counting()));
+        List<Map.Entry<String, Long>> top10 = countMap.entrySet().stream()
+                .sorted((a, b) -> Long.compare(b.getValue(), a.getValue()))
+                .limit(10)
+                .collect(Collectors.toList());
+        PieChart chart = new PieChart();
+        chart.setTitle("Top 10 Best Sellers");
+        top10.forEach(e -> chart.getData().add(new PieChart.Data(e.getKey(), e.getValue())));
+        saveChart(chart, "top10_bestsellers.png");
     }
 
     public void deleteAllOrders() {
@@ -228,5 +265,37 @@ public class OrderOperation {
             return new Order(orderId, userId, proId, orderTime);
         }
         return null;
+    }
+
+    /**
+     * Helper to create a standard LineChart with labeled axes and title.
+     */
+    private LineChart<String, Number> createLineChart(String xLabel, String yLabel, String title) {
+        CategoryAxis xAxis = new CategoryAxis();
+        xAxis.setLabel(xLabel);
+        NumberAxis yAxis = new NumberAxis();
+        yAxis.setLabel(yLabel);
+        LineChart<String, Number> chart = new LineChart<>(xAxis, yAxis);
+        chart.setTitle(title);
+        return chart;
+    }
+
+    /**
+     * Safely snapshot and save a JavaFX chart to disk.
+     */
+    private <T extends javafx.scene.chart.Chart> void saveChart(T chart, String filename) {
+        final String target = filename;
+        Platform.runLater(() -> {
+            Scene scene = new Scene(chart, 800, 600);
+            chart.applyCss();
+            WritableImage image = chart.snapshot(new SnapshotParameters(), null);
+            File file = new File(FIGURE_DIR, target);
+            try {
+                ImageIO.write(javafx.embed.swing.SwingFXUtils.fromFXImage(image, null), "png", file);
+                IOInterface.getInstance().printMessage("Saved chart: " + file.getAbsolutePath());
+            } catch (IOException e) {
+                IOInterface.getInstance().printErrorMessage("SaveChart", e.getMessage());
+            }
+        });
     }
 }

@@ -81,6 +81,7 @@ public class CustomerOperation {
         );
 
         io.printMessage("Customer registered successfully. Welcome, " + userName);
+        io.printMessage("\n");
 
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(CUSTOMER_FILE, true))) {
             writer.write("{");

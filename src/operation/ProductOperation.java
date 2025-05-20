@@ -64,7 +64,7 @@ public class ProductOperation {
             if (currentId.equalsIgnoreCase(productId)) {
                 products.remove(product);
                 List<String> lines = products.stream().map(Product::toString).toList();
-                FileManager.writeLinesToFile(productFilePath, lines, true);
+                FileManager.writeLinesToFile(productFilePath, lines, false);
                 return true;
             }
         }

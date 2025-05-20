@@ -13,15 +13,12 @@ public class Main {
 
         while (true) {
             io.printMessage("====== E-Commerce System ======\n");
-
             io.mainMenu();
-
             io.printMessage("===============================\n");
-
             String[] input = io.getUserInput("Enter your choice: ", 1);
 
-            switch (Integer.valueOf(input[0])) {
-                case 1 -> {
+            switch (input[0]) {
+                case "1" -> {
                     String[] userInput = io.getUserInput("Enter username and password: ", 2);
                     User user;
                     if (UserOperation.getInstance().checkUsernameExist(userInput[0]) && UserOperation.getInstance().validateUsername(userInput[0])
@@ -42,8 +39,8 @@ public class Main {
 
                             String[] inputChoice = io.getUserInput("Enter your choice: ", 1);
 
-                            switch (Integer.valueOf(inputChoice[0])) {
-                                case 1 -> {
+                            switch (inputChoice[0]) {
+                                case "1" -> {
                                     int pageNum = 1;
                                     while (true) {
                                         ProductListResult result = ProductOperation.getInstance().getProductList(pageNum);
@@ -59,10 +56,10 @@ public class Main {
                                         else if (choice[0].equalsIgnoreCase("b")) break;
                                     }
                                 }
-                                case 2 -> {
+                                case "2" -> {
 
                                 }
-                                case 3 -> {
+                                case "3" -> {
                                     int pageNum = 1;
                                     while (true) {
                                         CustomerListResult result = CustomerOperation.getInstance().getCustomerList(pageNum);
@@ -78,19 +75,21 @@ public class Main {
                                         else if (choice[0].equalsIgnoreCase("b")) break;
                                     }
                                 }
-                                case 4 -> {
+                                case "4" -> {
                                 }
-                                case 5 -> {
+                                case "5" -> {
 
                                 }
-                                case 6 -> {
-
+                                case "6" -> {
                                 }
-                                case 7 -> {
-
+                                case "7" -> {
+                                    ProductOperation.getInstance().deleteAllProducts();
+                                    CustomerOperation.getInstance().deleteAllCustomers();
+                                    OrderOperation.getInstance().deleteAllOrders();
                                 }
-                                case 8 -> {
+                                case "8" -> {
                                     io.printMessage("Goodbye! See you next time");
+                                    return;
                                 }
                             }
                         }
@@ -98,24 +97,24 @@ public class Main {
                         io.printErrorMessage("WrongInformation", "Your username and password does not exist");
                     }
                 }
-                case 2 -> {
+                case "2" -> {
                     io.registerMenu();
                     io.printMessage("===============================\n");
                     String[] inputC = io.getUserInput("Enter your choice: ", 1);
-                    switch (Integer.valueOf(inputC[0])) {
-                        case 1 -> {
+                    switch (inputC[0]) {
+                        case "1" -> {
                             AdminOperation.getInstance().registerAdmin();
                             UserOperation.getInstance().readAllUsers();
-                            UserOperation.getInstance().readAllUsers().forEach(u -> System.out.println(u.getUserName()));
                         }
-                        case 2 -> {
+                        case "2" -> {
                             String[] inputCustomer = io.getUserInput("Enter your name, password, email and mobile phone: ", 4);
                             CustomerOperation.getInstance().registerCustomer(inputCustomer[0], inputCustomer[1], inputCustomer[2], inputCustomer[3]);
                             UserOperation.getInstance().readAllUsers();
                         }
                     }
                 }
-                case 3 -> {
+                case "3" -> {
+                    return;
                 }
             }
         }
